@@ -1,0 +1,78 @@
+import streamlit as st
+
+# --- App Configuration ---
+st.set_page_config(
+    page_title="Brick Soling Calculator",
+    page_icon="🧱",
+    layout="centered"
+)
+
+# --- Main Title ---
+st.title("🧱 Brick Soling Calculator")
+st.markdown("---")
+
+# --- User Inputs in Sidebar ---
+st.sidebar.header("Project Inputs")
+
+total_area = st.sidebar.number_input("Total Area (sq.ft)", min_value=1.0, value=100.0, step=10.0)
+brick_length = st.sidebar.number_input("Brick Length (in)", min_value=1.0, value=9.0, step=0.1)
+brick_width = st.sidebar.number_input("Brick Width (in)", min_value=1.0, value=4.5, step=0.1)
+wastage = st.sidebar.number_input("Wastage (%)", min_value=0.0, max_value=100.0, value=5.0, step=1.0)
+sand_thickness = st.sidebar.number_input("Sand Thickness (in)", min_value=0.0, value=2.0, step=0.5)
+soil_thickness = st.sidebar.number_input("Soil Thickness (in)", min_value=0.0, value=3.0, step=0.5)
+joint_depth = st.sidebar.number_input("Joint Filling Depth (in)", min_value=0.0, value=1.5, step=0.1)
+joint_fraction = st.sidebar.number_input("Joint Filling Area Fraction", min_value=0.0, max_value=1.0, value=0.10, step=0.01)
+
+# --- Calculation Logic ---
+if st.button("Calculate Now"):
+    # --- Constants ---
+    INCH_TO_FEET = 1 / 12
+    FT3_TO_M3 = 0.0283168
+
+    # --- Brick Calculations ---
+    brick_length_ft = brick_length * INCH_TO_FEET
+    brick_width_ft = brick_width * INCH_TO_FEET
+    brick_area_sqft = brick_length_ft * brick_width_ft
+
+    if brick_area_sqft > 0:
+        bricks_no_wastage = total_area / brick_area_sqft
+        total_bricks_with_wastage = bricks_no_wastage * (1 + wastage / 100)
+    else:
+        bricks_no_wastage = 0
+        total_bricks_with_wastage = 0
+
+
+    # --- Material Calculations ---
+    sand_bedding_ft3 = total_area * (sand_thickness * INCH_TO_FEET)
+    sand_bedding_m3 = sand_bedding_ft3 * FT3_TO_M3
+
+    soil_leveling_ft3 = total_area * (soil_thickness * INCH_TO_FEET)
+    soil_leveling_m3 = soil_leveling_ft3 * FT3_TO_M3
+
+    joint_filling_ft3 = (total_area * joint_fraction) * (joint_depth * INCH_TO_FEET)
+    joint_filling_m3 = joint_filling_ft3 * FT3_TO_M3
+
+    # --- Display Results ---
+    st.markdown("---")
+    st.subheader("📊 Calculation Results")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.info("Brick Calculation")
+        st.markdown(f"""
+        - **Brick Area:** `{brick_area_sqft:,.2f} ft²`
+        - **Bricks (No Wastage):** `{bricks_no_wastage:,.0f} Nos.`
+        - **Total Bricks (with {wastage}% wastage):** **`{total_bricks_with_wastage:,.0f} Nos.`**
+        """)
+
+    with col2:
+        st.success("Material Calculation")
+        st.markdown(f"""
+        - **Sand Bedding:** `{sand_bedding_ft3:,.2f} ft³` / `{sand_bedding_m3:,.2f} m³`
+        - **Soil Leveling:** `{soil_leveling_ft3:,.2f} ft³` / `{soil_leveling_m3:,.2f} m³`
+        - **Joint Filling:** `{joint_filling_ft3:,.2f} ft³` / `{joint_filling_m3:,.2f} m³`
+        """)
+
+else:
+    st.info("Please fill in the details in the sidebar and click 'Calculate Now' to see the results.")
